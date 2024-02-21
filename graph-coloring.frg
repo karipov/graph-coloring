@@ -1,18 +1,9 @@
 #lang forge
 
-// graph sigs (alternative)
-// sig Vertex {
-//   color: lone Color
-// }
-
+// graph
 sig Vertex {
   adjacent: set Vertex
 }
-
-// sig Edge {
-//   from: one Vertex,
-//   to: one Vertex
-// }
 
 // coloring sigs
 abstract sig Color {}
@@ -22,12 +13,8 @@ one sig Coloring {
     color: pfunc Vertex -> Color
 }
 
-// define well-formed graphs
-// - connected
-// - unidrected (if you have to-from then also from-to)
-// - no self loops
+// all graphs are well-formed
 pred wellformed {
-  
   all disj v1, v2: Vertex | {
     -- connected
     reachable[v1, v2, adjacent]
@@ -40,9 +27,7 @@ pred wellformed {
   all v: Vertex | not v in v.adjacent
 }
 
-// define well-formed colorings
-// - all vertices are colored
-// - no two adjacent vertices have the same color
+// all graphs are colored correctly
 pred colorings {
   -- all vertices are colored
   all vertex: Vertex | one Coloring.color[vertex]
@@ -53,8 +38,8 @@ pred colorings {
   }
 }
 
-// question: where do we restrict the number of colors?
+
 run { 
   wellformed
   colorings
-} for exactly 3 Vertex//, exactly 3 Color
+} for exactly 3 Vertex
