@@ -6,8 +6,8 @@ sig Vertex {
 }
 
 // coloring sigs
-abstract sig Color {}
-one sig Red, Green, Blue extends Color {}
+sig Color {}
+// one sig Red, Green, Blue extends Color {}
 
 one sig Coloring {
     color: pfunc Vertex -> Color
