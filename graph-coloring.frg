@@ -42,7 +42,7 @@ pred tree {
   // a tree is connected
   some init_vertex: Vertex | {
     all other_vertex: Vertex | {
-      reachable[other_vertex, init_vertex, adjacent]
+      init_vertex != other_vertex implies reachable[other_vertex, init_vertex, adjacent]
     }
   }
   
@@ -51,6 +51,6 @@ pred tree {
 }
 
 run { 
-  wellformed
+  tree
   colorings
 } for exactly 3 Vertex
