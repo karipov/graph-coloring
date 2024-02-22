@@ -17,14 +17,14 @@ one sig Coloring {
 pred wellformed {
   all disj v1, v2: Vertex | {
     -- connected
-    reachable[v1, v2, adjacent]
+    reachable[v1, v2, adjacent] 
 
     -- undirected
     v1 in v2.adjacent implies v2 in v1.adjacent
   }
 
   -- no self loops
-  all v: Vertex | not v in v.adjacent
+  
 }
 
 // all graphs are colored correctly
@@ -39,10 +39,15 @@ pred colorings {
 }
 
 pred tree {
-  // characterize a tree by having no cycles
-  all vertex : Vertex | {
-    not reachable[vertex, vertex, adjacent]
+  // a tree is connected
+  some init_vertex: Vertex | {
+    all other_vertex: Vertex | {
+      reachable[other_vertex, init_vertex, adjacent]
+    }
   }
+  
+  // characterize a tree by having no cycles
+  all v: Vertex | (not v in v.adjacent) and (not reachable[v,v,adjacent])
 }
 
 run { 
