@@ -38,6 +38,12 @@ pred colorings {
   }
 }
 
+pred tree {
+  // characterize a tree by having no cycles
+  all vertex : Vertex | {
+    not reachable[vertex, vertex, adjacent]
+  }
+}
 
 run { 
   wellformed
