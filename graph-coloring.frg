@@ -24,7 +24,7 @@ pred wellformed {
   }
 
   -- no self loops
-  
+    all v: Vertex | {not v in v.adjacent}
 }
 
 // all graphs are colored correctly
@@ -65,7 +65,7 @@ pred wellformed_partial_coloring {
   -- no two adjacent vertices have the same color
     all disj v1, v2: Vertex | {
       v2 in v1.adjacent implies (Coloring.color[v2] != Coloring.color[v1])
-  }
+    }
   }
 }
 
@@ -75,7 +75,7 @@ pred initial[coloring: Coloring]{
 
 pred greedy_step[pre: Coloring, post: Coloring] {
   -- if pre has no colored vertices, then post has exactly one colored vertex
-  initial[pre] implies one vertex: Vertex | {some post.color[vertex]}
+  initial[pre] implies {one vertex: Vertex | {some post.color[vertex]}}
   -- if pre has colored vertices, then all of the adjecent vertices of the colored vertices in pre are colored in post
   all vertex1, vertex2: Vertex | {
     (vertex2 in vertex1.adjacent and some pre.color[vertex1]) implies some post.color[vertex2]
@@ -84,4 +84,20 @@ pred greedy_step[pre: Coloring, post: Coloring] {
   all vertex : Vertex | {some pre.color[vertex] implies pre.color[vertex] = post.color[vertex]}
   -- the partial colorings are wellformed
   wellformed_partial_coloring
+}
+
+one sig Greedy {
+  first: one Coloring,
+  next: pfunc Coloring -> Coloring 
+}
+
+pred coloring_trace {
+  initial[Greedy.first]
+  all coloring: Coloring | {
+    some Greedy.next[coloring] implies {
+      some next_coloring: Coloring | {
+        greedy_step[coloring, next_coloring]
+      }
+    }
+  }
 }
