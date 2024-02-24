@@ -14,4 +14,7 @@ test suite for colorings {
         tree and colorings
          #{v: Vertex | some v} > 1
     } for exactly 2 Color is sat}
+
+    // write a test saying that tree is sufficient for having a sat coloring with two colors
+    assert tree is sufficient for colorings for exactly 2 Color
 }
