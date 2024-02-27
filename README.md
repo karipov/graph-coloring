@@ -5,13 +5,17 @@
 
 ## Project Objective
 
-**Problem Statement**: Is it possible to assign N colors to the vertices of a graph such that no two adjacent vertices share the same color?
+> Is it possible to assign N colors to the vertices of a graph such that no two adjacent vertices share the same color?
 
 Such a coloring is called a graph coloring. In this project we not only explore the basic idea of graph coloring, but also model a simple greedy graph coloring algorithm. In theory, a graph can be colored if and only if it can be colored by a greedy graph coloring algorithm.
 
 ## Model Design and Signatures
 
-We start with a simple idea for trying to color a graph with 5 vertices with 3 colors -- Red, Blue and Green. Our expected solution space is all the possible valid colorings. At first, we chose to represent a graph as a list of vertices and edges.
+We start with a simple idea for trying to color a graph with 5 vertices with 3 colors -- Red, Blue and Green. Our expected solution space is all the possible valid colorings. 
+
+#### Graph Representation
+
+At first, we chose to represent a graph as a list of vertices and edges.
 
 ```
 sig Vertex {}
@@ -39,6 +43,8 @@ all disj v1, v2: Vertex | {
     reachable[v1, v2, adjacent]
 }
 ```
+
+#### Graph Color Representation
 
 Now that we have a have a working model for a Graph, we can start thinking about how to model the coloring of the graph. We start by defining a set of colors and a function that maps each vertex to a color. To do this, we create a `Coloring` sig with a `pfunc`, as described.
 
@@ -78,11 +84,13 @@ run {
 
 ## Predicates and Visualization
 
-We can divide our predicates into two groups: those that check the existence of a graph coloring and those that check the validity of a greedy graph coloring algorithm. Let's start with the first group.
+We can divide our predicates into two groups: those that check the existence of a graph coloring and those that check the validity of a greedy graph coloring algorithm.
 
-Our `wellformed` predicate checks that the graph is connected, undirected and has no self loops. Though there exist graph coloring algorithms that work with directed graphs, we thought that undirected graphs were more interesting. Furthermore, we wanted our graphs to be connected, because colorings for disconnected graphs can be reduced to colorings for each connected component of the graph. These are all choices and abstractions that we have built into our model.
+#### Part 1: Existence of Graph Coloring
 
-Our `wellformed_colorings` predicate checks that the coloring is valid. This means that no two adjacent vertices share the same color. We also check that the coloring is complete, i.e. every vertex has a color. This is the essence of graph coloring.
+- Our `wellformed` predicate checks that the graph is connected, undirected and has no self loops. Though there exist graph coloring algorithms that work with directed graphs, we thought that undirected graphs were more interesting. Furthermore, we wanted our graphs to be connected, because colorings for disconnected graphs can be reduced to colorings for each connected component of the graph. These are all choices and abstractions that we have built into our model.
+
+- Our `wellformed_colorings` predicate checks that the coloring is valid. This means that no two adjacent vertices share the same color. We also check that the coloring is complete, i.e. every vertex has a color. This is the essence of graph coloring.
 
 When run together, for N vertices and M colors, we get all the possible colorings of graphs with N vertices and M colors. If a graph with N vertices cannot be colored with M colors, we get UNSAT. Sterling gives us a nice visualization.
 
@@ -97,9 +105,11 @@ Here we can see that for exactly 3 vertices and 2 colors, we can only color the 
 
 ![graph_coloring_simple](images/sterling_simple.png)
 
-Now let's move on to the predicates that check the validity of a greedy graph coloring algorithm. We have an `initial` predicate that sets the state of the initial Coloring to have no colors map to any vertices. This predicate forms a part of the general `greedy_step` predicate, which defines the constraints of taking a step in the greedy graph algorithm. In essence, we only color a vertex if it has not been colored yet and one of its adjacent vertices has been colored.
+#### Part 2: Validity of Greedy Graph Coloring Algorithm
 
-Lastly, we have the `coloring_trace`, which constrains the `next` field of the `Greedy` visualization to move into the next state according the `greedy_step` predicate. It is crucial that the `next` field is linear, to ensure that each step is valid. We enforce that in the `run` command.
+- `initial` predicate that sets the state of the initial Coloring to have no colors map to any vertices. This predicate forms a part of the general `greedy_step` predicate, which defines the constraints of taking a step in the greedy graph algorithm. In essence, we only color a vertex if it has not been colored yet and one of its adjacent vertices has been colored.
+
+- `coloring_trace`, which constrains the `next` field of the `Greedy` visualization to move into the next state according the `greedy_step` predicate. It is crucial that the `next` field is linear, to ensure that each step is valid. We enforce that in the `run` command.
 
 ```
 run {
@@ -111,4 +121,6 @@ run {
 Here we can see one way a greedy algorithm can color a 3-vertex graph with 2 colors. We used the "Time Projection" feature of sterling on the `Coloring` sig to get this nice gif!
 
 ![graph_coloring_greedy](images/greedy_coloring.gif)
+
+## Testing and Validation
 
