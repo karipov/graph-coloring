@@ -31,12 +31,12 @@ pred wellformed {
 pred wellformed_colorings {
   -- all vertices are colored
   all coloring : Coloring | {
-    all vertex: Vertex | one Coloring.color[vertex]
+    all vertex: Vertex | one coloring.color[vertex]
 
   -- no two adjacent vertices have the same color
     all disj v1, v2: Vertex | {
-      v2 in v1.adjacent implies (Coloring.color[v2] != Coloring.color[v1])
-  }
+      v2 in v1.adjacent implies (coloring.color[v2] != coloring.color[v1])
+    }
   }
 }
 
@@ -52,19 +52,19 @@ pred tree {
   all v: Vertex | (not v in v.adjacent) and (not reachable[v,v,adjacent])
 }
 
-run { 
-  wellformed
-  wellformed_colorings
-} for exactly 3 Vertex
+// run { 
+//   wellformed
+//   wellformed_colorings
+// } for exactly 3 Vertex, exactly 2 Color, exactly 1 Coloring
 
 pred wellformed_partial_coloring {
   -- all vertices are colored
   all coloring : Coloring | {
-    all vertex: Vertex | lone Coloring.color[vertex]
+    all vertex: Vertex | lone coloring.color[vertex]
 
   -- no two adjacent vertices have the same color
     all disj v1, v2: Vertex | {
-      v2 in v1.adjacent implies (Coloring.color[v2] != Coloring.color[v1])
+      ((some coloring.color[v1] or some coloring.color[v2]) and v2 in v1.adjacent) implies (coloring.color[v2] != coloring.color[v1])
     }
   }
 }
@@ -78,8 +78,19 @@ pred greedy_step[pre: Coloring, post: Coloring] {
   initial[pre] implies {one vertex: Vertex | {some post.color[vertex]}}
   -- if pre has colored vertices, then all of the adjecent vertices of the colored vertices in pre are colored in post
   all vertex1, vertex2: Vertex | {
+    -- iff
     (vertex2 in vertex1.adjacent and some pre.color[vertex1]) implies some post.color[vertex2]
-    }
+  }
+
+  // not initial[pre] implies { all vertex1: Vertex | {
+  //     some post.color[vertex1] implies { some vertex2: Vertex | {
+  //         vertex1 in vertex2.adjacent
+  //         some pre.color[vertex2]
+  //       }
+  //     }
+  //   }
+  // }
+
   -- all the colored vertices in pre have the same color in post
   all vertex : Vertex | {some pre.color[vertex] implies pre.color[vertex] = post.color[vertex]}
   -- the partial colorings are wellformed
@@ -95,9 +106,12 @@ pred coloring_trace {
   initial[Greedy.first]
   all coloring: Coloring | {
     some Greedy.next[coloring] implies {
-      some next_coloring: Coloring | {
-        greedy_step[coloring, next_coloring]
-      }
+      greedy_step[coloring, Greedy.next[coloring]]
     }
   }
 }
+
+run {
+  wellformed
+  coloring_trace
+} for exactly 3 Vertex, exactly 2 Color for {next is linear}
