@@ -4,12 +4,26 @@ open "graph-coloring.frg"
 
 ------------------------------------------------------------------------
 
+pred tree {
+  // a tree is connected
+  some init_vertex: Vertex | {
+    all other_vertex: Vertex | {
+      reachable[other_vertex, init_vertex, adjacent]
+    }
+  }
+  
+  // characterize a tree by having no cycles
+  all v: Vertex | (not v in v.adjacent) and (not reachable[v,v,adjacent])
+}
+
 test suite for colorings {
+    -- no graph can be colored with one color
     test expect { one_color_impossible: {
         wellformed and wellformed_colorings
         #{v: Vertex | some v} > 1
     } for exactly 1 Color is unsat}
 
+    -- any tree can be colored with two colors
     test expect {two_color_tree: {
         tree and wellformed_colorings
          #{v: Vertex | some v} > 1
