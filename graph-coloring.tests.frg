@@ -3,8 +3,67 @@
 open "graph-coloring.frg"
 
 ------------------------------------------------------------------------
+test suite for wellformed {
+  example directed is {not wellformed} for {
+    Vertex = `Vertex1 + `Vertex2
+    `Vertex1.adjacent = `Vertex2
+  }
+
+  example unconnected is {not wellformed} for {
+    Vertex = `Vertex1 + `Vertex2
+  }
+
+  example selfLoop is {not wellformed} for {
+    Vertex = `Vertex1
+    `Vertex1.adjacent = `Vertex1
+  }
+
+  example cyclic is {wellformed} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 + `Vertex4 + `Vertex5
+    `Vertex1.adjacent = `Vertex5 + `Vertex2
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2 + `Vertex4
+    `Vertex4.adjacent = `Vertex3 + `Vertex5
+    `Vertex5.adjacent = `Vertex4 + `Vertex1
+  }
+
+  example SixVertexTree is {wellformed} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 + `Vertex4 + `Vertex5 + `Vertex6
+    `Vertex1.adjacent = `Vertex2 + `Vertex3 + `Vertex6
+    `Vertex2.adjacent = `Vertex1 + `Vertex4 + `Vertex5
+    `Vertex3.adjacent = `Vertex1
+    `Vertex4.adjacent = `Vertex2
+    `Vertex5.adjacent = `Vertex2
+    `Vertex6.adjacent = `Vertex1
+  }
+
+  example ThreeClique is {wellformed} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 
+    `Vertex1.adjacent = `Vertex2 + `Vertex3
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2 + `Vertex1
+  }
+}
 
 pred wellformed_and_colored { wellformed and wellformed_colorings }
+
+pred cyclic_graph{wellformed and (all vertex: Vertex | { #{adj_vertex: Vertex | adj_vertex in vertex.adjacent} = 2})}
+//assert cyclic_graph is sufficient for wellformed_colorings for exactly 3 Color
+
+pred is_wellformed_coloring[coloring: Coloring] {
+    all vertex: Vertex | one coloring.color[vertex]
+    all disj v1, v2: Vertex | {
+      v2 in v1.adjacent implies (coloring.color[v2] != coloring.color[v1])
+    }
+}
+
+test suite for is_wellformed_coloring {
+-- as soon as a graph is cyclic it can be colored with three colors
+    //test expect {cyclic_graph_three_colored: {
+    //  cyclic_graph implies {some coloring: Coloring | is_wellformed_coloring[coloring]}
+    //} for exactly 3 Color, exactly 1 Coloring is theorem}
+} -- problem:  gives counter example
+-- question : why does it give a counter example when we claim *existence* of a coloring. The fact that one coloring doesn't work doesn't refute existencce
 
 test suite for wellformed_and_colored {
     -- no graph can be colored with one color
@@ -19,6 +78,8 @@ test suite for wellformed_and_colored {
       `Vertex1.adjacent = `Vertex2 + `Vertex3
       `Vertex2.adjacent = `Vertex1 + `Vertex4 + `Vertex5
       `Vertex3.adjacent = `Vertex1
+      `Vertex4.adjacent = `Vertex2
+      `Vertex5.adjacent = `Vertex2
 
       Color = `Red + `Blue
       Coloring = `Coloring1
@@ -28,9 +89,77 @@ test suite for wellformed_and_colored {
                           `Vertex4 -> `Red +
                           `Vertex5 -> `Red
     }
+
+  -- a clique with N vertices cannot be colored with N-1 colors
+  example ThreeCliqueTwoColors is {not wellformed_and_colored} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 
+    `Vertex1.adjacent = `Vertex2 + `Vertex3
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2 + `Vertex1
+
+    Color = `Red + `Blue
+    Coloring = `Coloring1
+    `Coloring1.color =  `Vertex1 -> `Red + 
+                        `Vertex2 -> `Blue +
+                        `Vertex3 -> `Blue
+  }
+    
+  -- a clique with N vertices can be colored with N colors
+  example ThreeCliqueThreeColors is {wellformed_and_colored} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 
+    `Vertex1.adjacent = `Vertex2 + `Vertex3
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2 + `Vertex1
+
+    Color = `Red + `Blue + `Green
+    Coloring = `Coloring1
+    `Coloring1.color =  `Vertex1 -> `Red + 
+                        `Vertex2 -> `Blue +
+                        `Vertex3 -> `Green
+  }
+
+  -- cyclic graphs with an even number of vertices can be colored with 2 colors
+  example cyclicEvenTwoColors is {wellformed_and_colored} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 + `Vertex4 + `Vertex5 + `Vertex6
+    `Vertex1.adjacent = `Vertex6 + `Vertex2
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2 + `Vertex4
+    `Vertex4.adjacent = `Vertex3 + `Vertex5
+    `Vertex5.adjacent = `Vertex4 + `Vertex6
+    `Vertex6.adjacent = `Vertex5 + `Vertex1
+
+    Color = `Red + `Blue
+    Coloring = `Coloring1
+    `Coloring1.color =  `Vertex1 -> `Red + 
+                        `Vertex2 -> `Blue +
+                        `Vertex3 -> `Red +
+                        `Vertex4 -> `Blue +
+                        `Vertex5 -> `Red +
+                        `Vertex6 -> `Blue 
+  }
+  
+  -- a coloring with a non minimal number of colors is still wellformed
+  example unoptimal is {wellformed_and_colored} for {
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3 + `Vertex4 + `Vertex5 + `Vertex6
+    `Vertex1.adjacent = `Vertex6 + `Vertex2
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2 + `Vertex4
+    `Vertex4.adjacent = `Vertex3 + `Vertex5
+    `Vertex5.adjacent = `Vertex4 + `Vertex6
+    `Vertex6.adjacent = `Vertex5 + `Vertex1
+
+    Color = `Red + `Blue + `Green
+    Coloring = `Coloring1
+    `Coloring1.color =  `Vertex1 -> `Red + 
+                        `Vertex2 -> `Blue +
+                        `Vertex3 -> `Red +
+                        `Vertex4 -> `Green +
+                        `Vertex5 -> `Red +
+                        `Vertex6 -> `Blue
+  }
 }
 
--- Inductive verification
+-- Inductive verification that a step in the greedy algorithm preserves wellformed colorings
 
 pred wellformed_partial_coloring[coloring: Coloring] { --- VALIDATION
   -- all vertices are colored
