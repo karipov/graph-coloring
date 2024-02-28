@@ -47,7 +47,12 @@ test suite for wellformed {
 
 pred wellformed_and_colored { wellformed and wellformed_colorings }
 
-pred cyclic_graph{wellformed and (all vertex: Vertex | { #{adj_vertex: Vertex | adj_vertex in vertex.adjacent} = 2})}
+pred cyclic_graph[coloring: Coloring] {
+  wellformed
+  all vertex: Vertex | {#{adj_vertex: Vertex | adj_vertex in vertex.adjacent} = 2
+  is_wellformed_coloring[coloring]
+     }
+}
 //assert cyclic_graph is sufficient for wellformed_colorings for exactly 3 Color
 
 pred is_wellformed_coloring[coloring: Coloring] {
@@ -60,9 +65,10 @@ pred is_wellformed_coloring[coloring: Coloring] {
 test suite for is_wellformed_coloring {
 -- as soon as a graph is cyclic it can be colored with three colors
     //test expect {cyclic_graph_three_colored: {
-    //  cyclic_graph implies {some coloring: Coloring | is_wellformed_coloring[coloring]}
-    //} for exactly 3 Color, exactly 1 Coloring is theorem}
-} -- problem:  gives counter example
+      //some coloring: Coloring | cyclic_graph[coloring]
+      //} for exactly 3 Color, exactly 1 Coloring is theorem}
+}
+     -- problem:  gives counter example
 -- question : why does it give a counter example when we claim *existence* of a coloring. The fact that one coloring doesn't work doesn't refute existencce
 
 test suite for wellformed_and_colored {
@@ -71,6 +77,11 @@ test suite for wellformed_and_colored {
         wellformed_and_colored
         #{v: Vertex | some v} > 1
     } for exactly 1 Color is unsat}
+
+    test expect {incomplete_color: {
+      wellformed_and_colored
+      some vertex: Vertex | {no Coloring.color[vertex]}
+      } for exactly 1 Coloring is unsat} 
 
     -- any tree can be colored with two colors
     example fiveVertexTree is { wellformed_and_colored } for {
