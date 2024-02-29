@@ -2,7 +2,7 @@
 
 open "graph-coloring.frg"
 
-------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
 
 // predicates that will be used in our testing
 
@@ -26,7 +26,8 @@ pred is_wellformed_coloring[coloring: Coloring] {
 -- check whether an inputted coloring colors all the vertices
 pred fully_colored_all { all coloring: Coloring | fully_colored[coloring] }
 
-// In this test suite, we chose to present the nice results first and leave the over and under constraint checks at the end of the file.
+// In this test suite, we chose to present the nice results first and leave the
+// over and under constraint checks at the end of the file.
 
 // Inductive verification that a step in the greedy algorithm preserves wellformed colorings
 
@@ -51,11 +52,17 @@ pred move_from_partial_coloring[pre, post: Coloring] {
 }
 
 -- base case: check that initial colorings are wellformed 
-assert all coloring: Coloring | initial[coloring] is sufficient for wellformed_partial_coloring[coloring]
--- inductive step: check that if the greedy algorithm makes a step from a wellformed partial coloring, then the resulting coloring will also be wellformed
-assert all pre, post: Coloring | move_from_partial_coloring[pre, post] is sufficient for wellformed_partial_coloring[post]
+assert all coloring: Coloring | {
+  initial[coloring] is sufficient for wellformed_partial_coloring[coloring]
+}
+-- inductive step: check that if the greedy algorithm makes a step from a wellformed
+-- partial coloring, then the resulting coloring will also be wellformed
+assert all pre, post: Coloring | {
+  move_from_partial_coloring[pre, post] is sufficient for wellformed_partial_coloring[post]
+}
 
-// Testing the trace of our Greedy algoritm. We start by testing the basic properties and move on to proving a couple of interesting facts.
+// Testing the trace of our Greedy algoritm. We start by testing the basic properties
+// and move on to proving a couple of interesting facts.
 
 test suite for coloring_trace {
   -- only vertices adjacent to colored vertices can be colored in the next greedy step
@@ -129,9 +136,9 @@ test suite for coloring_trace {
                   + `Coloring3 -> `Coloring4
   }
 
-  // theorem that at some point there is some instance that is fully colored in the coloring trace
-  // coloring_trace terminates with a fully colored graph
-  // in conjunction with the inductive verification means that it will always find a coloring or be unsatisfiable
+  // Theorem that coloring_trace terminates with a fully colored graph.
+  // In conjunction with the inductive verification means that it will always find
+  // a well-formed coloring or be unsatisfiable 
   test expect {fully_colored_in_trace: {
     -- if the graph is wellformed and there is a coloring trace
     (wellformed and coloring_trace) implies {
@@ -143,7 +150,7 @@ test suite for coloring_trace {
     }
   } for {next is linear} is theorem}
 
--- cylic graphs with three vertices can't be colored with two colors
+  -- cylic graphs with three vertices can't be colored with two colors
   test expect {cyclic_graph_impossible: {
     some coloring: Coloring | {
       cyclic_graph[coloring]
@@ -151,7 +158,7 @@ test suite for coloring_trace {
     }
   } for exactly 3 Vertex, exactly 2 Color is unsat}
 
-// cyclic graphs can always be colored with three colors
+  // cyclic graphs can always be colored with three colors
   test expect {cyclic_graph_three_colored: {
     some coloring: Coloring | {
       cyclic_graph[coloring]
@@ -175,8 +182,9 @@ test suite for wellformed_colorings {
     }
   } for {next is linear} is theorem}
 
-  // This, in conjunction with our inductive verification that the Greedy algorithm only finds wellformed colorings implies that a wellformed graph admits a wellformed coloring IF AND ONLY IF the greedy algorithm can find it! This is a pretty strong result :)
-
+  // This, in conjunction with our inductive verification that the Greedy algorithm only finds
+  // wellformed colorings implies that a wellformed graph admits a wellformed coloring
+  // IF AND ONLY IF the greedy algorithm can find it! This is a pretty strong result :)
 }
 
 // Checks that our basic predicates don't over or under constrain 
