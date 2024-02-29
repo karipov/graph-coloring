@@ -124,3 +124,10 @@ Here we can see one way a greedy algorithm can color a 3-vertex graph with 2 col
 
 ## Testing and Validation
 
+We have a number of tests that check for the correctness of our basic predicates. For example, we check that our `wellformed` predicate allows for cyclic graphs, but does not allow for unconnected or directed graphs. For our greedy algorithm, we check that indeed the only vertices that are colored in the subsequent step are the ones adjacent to those in the previous step. We can see these as being unit tests for our model.
+
+We also test for more interesting *properties* of graph colorings. For example, no graph can be colored with one color (`one_color_impossible`) and no graph coloring can have a vertex without colors. We also an construct examples of graphs, which can always be colored with only two colors, such as trees and even-numbered cyclic graphs (`fiveVertexTree`, `cyclicEvenTwoColors` and `cyclic_graph_impossible`). Notably, we wrote a theorem that any cyclic graph can be colored with three colors (`cyclic_graph_three_colored`).
+
+Lastly, we look at some theorems that unify both our greedy graph coloring algorithm and the predicates that check for basic existence of graph colorings. For example, we perform an inductive verification of the fact that at each step of the greedy algorithm, the coloring is invariant (`move_from_partial_coloring` and `wellformed_partial_coloring`). We also write a theorem that at some point `coloring_trace` terminates in a fully colored graph that is valid (`fully_colored_in_trace`). In conjunction with the inductive verification, this means that our greedy coloring algorithm will always find a coloring or be unsatisfiable.
+
+Ultimately, we write a theorem stating that if there is a valid coloring, then the greedy algorithm will find it (`greedy_and_existence_equivalence`). This was the coolest part of the project -- to see two different approaches to the same problem come together in a single theorem. We enjoyed working on this model and hope you enjoy reading about it!
