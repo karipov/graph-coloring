@@ -3,6 +3,7 @@
 open "graph-coloring.frg"
 
 ------------------------------------------------------------------------
+
 test suite for wellformed {
   example directed is {not wellformed} for {
     Vertex = `Vertex1 + `Vertex2
@@ -170,6 +171,95 @@ test suite for wellformed_and_colored {
   }
 }
 
+pred initial_all {
+  all coloring: Coloring | initial[coloring]
+}
+
+test suite for initial_all {
+  example noColorsInitial is { initial_all } for {
+    Vertex = `Vertex1 + `Vertex2
+    Coloring = `Coloring0
+    no `Coloring0.color
+  }
+
+  example oneColorInitial is { not initial_all } for {
+    Vertex = `Vertex1 + `Vertex2
+    Color = `Red
+    Coloring = `Coloring0
+    `Coloring0.color = `Vertex1 -> `Red
+  }
+}
+
+pred fully_colored_all { all coloring: Coloring | fully_colored[coloring] }
+
+test suite for fully_colored_all {
+  example noColorsFull is { not fully_colored_all } for {
+    Vertex = `Vertex1 + `Vertex2
+    Coloring = `Coloring0
+    no `Coloring0.color
+  }
+
+  example oneColorFull is { fully_colored_all } for {
+    Vertex = `Vertex1 + `Vertex2
+    Color = `Red
+    Coloring = `Coloring0
+    `Coloring0.color = `Vertex1 -> `Red + `Vertex2 -> `Red
+  }
+
+  example onlyOneVertexFull is { not fully_colored_all } for {
+    Vertex = `Vertex1 + `Vertex2
+    Color = `Red
+    Coloring = `Coloring0
+    `Coloring0.color = `Vertex1 -> `Red
+  }
+}
+
+test suite for coloring_trace {
+  // only vertices adjacent to colored vertices can be colored in the next greedy step
+  example colorNonAdjacent is { not coloring_trace } for {
+    -- graph (a line)
+    Vertex = `Vertex1 + `Vertex2 + `Vertex3
+    `Vertex1.adjacent = `Vertex2
+    `Vertex2.adjacent = `Vertex1 + `Vertex3
+    `Vertex3.adjacent = `Vertex2
+
+    -- colors
+    Color = `Red + `Blue
+    Coloring = `Coloring0 + `Coloring1 + `Coloring2
+
+    no `Coloring0.color
+    `Coloring1.color = `Vertex1 -> `Red
+    `Coloring2.color = `Vertex1 -> `Red + `Vertex2 -> `Blue + `Vertex3 -> `Red
+
+    Greedy = `Greedy0
+    `Greedy0.first = `Coloring0
+    `Greedy0.next = `Coloring0 -> `Coloring2 
+                  + `Coloring1 -> `Coloring2
+  }
+
+  // theorem that at some point there is some instance that is fully colored in the coloring trace
+  // coloring_trace terminates with a fully colored graph
+  // in conjunction with the inductive verification means that it will always find a coloring or be unsatisfiable
+  test expect {fully_colored_in_trace: {
+    (wellformed and coloring_trace) implies {
+      some coloring: Coloring | {
+        (coloring = Greedy.first) or #^(Greedy.next).coloring > 0
+        and fully_colored[coloring]
+      }
+    }
+  } for {next is linear} is theorem}
+
+  test expect {cyclic_graph_impossible: {
+    some coloring: Coloring | {
+      cyclic_graph[coloring]
+      coloring_trace
+    }
+  } for exactly 3 Vertex, exactly 2 Color is unsat}
+
+}
+
+
+
 -- Inductive verification that a step in the greedy algorithm preserves wellformed colorings
 
 pred wellformed_partial_coloring[coloring: Coloring] { --- VALIDATION
@@ -193,6 +283,20 @@ pred move_from_partial_coloring[pre, post: Coloring] {
 
 assert all coloring: Coloring | initial[coloring] is sufficient for wellformed_partial_coloring[coloring]
 assert all pre, post: Coloring | move_from_partial_coloring[pre, post] is sufficient for wellformed_partial_coloring[post]
+
+test suite for wellformed_colorings {
+
+  // if there's a valid coloring, then the greedy algorithm will find it
+  test expect {greedy_and_existence_equivalence: {
+    (wellformed and wellformed_colorings) implies {
+      some coloring: Coloring | {
+        (coloring = Greedy.first) or #^(Greedy.next).coloring > 0
+        fully_colored[coloring]
+      }
+      wellformed
+    }
+  } for {next is linear} is theorem}
+}
 
 
 
